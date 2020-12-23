@@ -8,6 +8,8 @@ library(statip)
 library(e1071)
 library(ISLR)
 library(tree)
+library(Hmisc)
+library(descr)
 
 # Ucitavanje podataka (izvornih) u data frame
 attrition_train<-read.csv("Data/attrition_train.csv", header=TRUE)
@@ -17,6 +19,7 @@ attrition_test$Attrition <- as.factor(attrition_test$Attrition)
 #attrition_train<-ovun.sample(Attrition~., data = attrition_train, method="over", N=10000)$data
 #undersampling
 #attrition_train<-ovun.sample(Attrition~., data = attrition_train, method="under", N=400, seed = 1)$data
+
 
 
 # Postavljanje faktor varijabli
@@ -45,28 +48,23 @@ aggr(attrition_train)
 #provjera koje varijable imaju prazne redove
 colnames(attrition_train)[colSums(is.na(attrition_train)) > 0]
 
-#provjera tipova tih varijabli
-typeof(attrition_train$Department)
-typeof(attrition_train$EducationField)
-typeof(attrition_train$JobRole)
-typeof(attrition_train$Over18)
-typeof(attrition_train$PercentSalaryHike)
-typeof(attrition_train$StandardHours)
-typeof(attrition_train$TrainingTimesLastYear)
 
-#popunjavamo ih sa mode vrijednostima(možemo staviti i neku drugu funkciju)
+#popunjavamo ih sa mode vrijednostima za kategoričke varijable
 getmode <- function(v) {
   uniqv <- unique(v)
   uniqv[which.max(tabulate(match(v, uniqv)))]
 }
 
+#za numericke varijable(pogodno i za one varijable gdje imamo outliere)
+NA2mean <- function(x) mean(x)
+
 attrition_train[is.na(attrition_train$Department),'Department']<-getmode(attrition_train[!is.na(attrition_train$Department),'Department'])
 attrition_train[is.na(attrition_train$EducationField),'EducationField']<-getmode(attrition_train[!is.na(attrition_train$EducationField),'EducationField'])
 attrition_train[is.na(attrition_train$JobRole),'JobRole']<-getmode(attrition_train[!is.na(attrition_train$JobRole),'JobRole'])
 attrition_train[is.na(attrition_train$Over18),'Over18']<-getmode(attrition_train[!is.na(attrition_train$Over18),'Over18'])
-attrition_train[is.na(attrition_train$PercentSalaryHike),'PercentSalaryHike']<-getmode(attrition_train[!is.na(attrition_train$PercentSalaryHike),'PercentSalaryHike'])
-attrition_train[is.na(attrition_train$StandardHours),'StandardHours']<-getmode(attrition_train[!is.na(attrition_train$StandardHours),'StandardHours'])
-attrition_train[is.na(attrition_train$TrainingTimesLastYear),'TrainingTimesLastYear']<-getmode(attrition_train[!is.na(attrition_train$TrainingTimesLastYear),'TrainingTimesLastYear'])
+attrition_train[is.na(attrition_train$PercentSalaryHike),'PercentSalaryHike']<-NA2mean(attrition_train[!is.na(attrition_train$PercentSalaryHike),'PercentSalaryHike'])
+attrition_train[is.na(attrition_train$StandardHours),'StandardHours']<-NA2mean(attrition_train[!is.na(attrition_train$StandardHours),'StandardHours'])
+attrition_train[is.na(attrition_train$TrainingTimesLastYear),'TrainingTimesLastYear']<-NA2mean(attrition_train[!is.na(attrition_train$TrainingTimesLastYear),'TrainingTimesLastYear'])
 
 consolidate.education <- function(education) {
   if(education == 'Below College') {
@@ -240,3 +238,23 @@ attrition_test[,c(4,10,20)]<-lapply(attrition_test[,c(4,10,20)],z_score)
 #primjena log funkcije na varijable koje su smaknute
 attrition_test$HourlyRate<-log(attrition_test$HourlyRate)
 attrition_test$MonthlyIncome<-log(attrition_test$MonthlyIncome)
+
+#VEZE MEDJU VARIJABLAMA DA ZNAMO KOJU MOZEMO IZBACITI -- nije uradjeno
+cor<-rcorr(as.matrix(attrition_train[,c("X", "Attrition", "DistanceFromHome",        
+                                        "EmployeeNumber", "Education",               
+                                        "HourlyRate", "JobLevel","EnvironmentSatisfaction","JobInvolvement","WorkLifeBalance","RelationshipSatisfaction","PerformanceRating", "JobSatisfaction","StockOptionLevel",       
+                                        "MonthlyIncome","MonthlyRate","NumCompaniesWorked","TotalWorkingYears","YearsAtCompany","YearsInCurrentRole",      
+                                        "YearsSinceLastPromotion","YearsWithCurrManager" )]))
+crosstab(attrition_train, row.vars = "Attrition", col.vars = c("DistanceFromHome", "BusinessTravel","DailyRate","Department","EducationField","EmployeeCount","Gender",
+                                                               "JobRole","MaritalStatus","Over18","OverTime","PercentSalaryHike","StandardHours","TrainingTimesLastYear",
+                                                               "BirthDate",
+                                                               "EmployeeNumber", "Education",               
+                                                               "HourlyRate", "JobLevel",
+                                                               "EnvironmentSatisfaction","JobInvolvement",
+                                                               "WorkLifeBalance","RelationshipSatisfaction",
+                                                               "PerformanceRating", "JobSatisfaction",
+                                                               "StockOptionLevel","MonthlyIncome",
+                                                               "MonthlyRate","NumCompaniesWorked",
+                                                               "TotalWorkingYears","YearsAtCompany","YearsInCurrentRole",      
+                                                               "YearsSinceLastPromotion","YearsWithCurrManager" ))
+
