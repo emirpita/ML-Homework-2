@@ -25,8 +25,8 @@ attrition_test$Attrition <- as.factor(attrition_test$Attrition)
 # Postavljanje faktor varijabli
 attrition_train$Attrition <- as.factor(attrition_train$Attrition)
 #prebacivanje BirthDate varijable u Date tip i agregiranje na godinu rodjenja
-attrition_train$BirthDate <- as.Date(attrition_train$BirthDate)
-attrition_test$BirthDate <- as.Date(attrition_test$BirthDate)
+#attrition_train$BirthDate <- as.Date(attrition_train$BirthDate)
+#attrition_test$BirthDate <- as.Date(attrition_test$BirthDate)
 
 #attrition_train$BirthDate <- format(attrition_train$BirthDate, "%Y")
 
@@ -66,6 +66,8 @@ attrition_train[is.na(attrition_train$PercentSalaryHike),'PercentSalaryHike']<-N
 attrition_train[is.na(attrition_train$StandardHours),'StandardHours']<-NA2mean(attrition_train[!is.na(attrition_train$StandardHours),'StandardHours'])
 attrition_train[is.na(attrition_train$TrainingTimesLastYear),'TrainingTimesLastYear']<-NA2mean(attrition_train[!is.na(attrition_train$TrainingTimesLastYear),'TrainingTimesLastYear'])
 
+
+#Normalizacija podataka u kolonama
 consolidate.education <- function(education) {
   if(education == 'Below College') {
     return(1)
@@ -197,6 +199,7 @@ attrition_train$WorkLifeBalance <- as.numeric(sapply(as.character(attrition_trai
 attrition_train$JobLevel <- as.numeric(sapply(as.character(attrition_train$JobLevel), consolidate.jobLevel, USE.NAMES=FALSE))
 attrition_train$StockOptionLevel <- as.numeric(sapply(as.character(attrition_train$StockOptionLevel), consolidate.stockoptionlevel, USE.NAMES=FALSE))
 
+#normalizacija testnog seta
 attrition_test$Education <- as.numeric(sapply(as.character(attrition_test$Education), consolidate.education, USE.NAMES=FALSE))
 attrition_test$EnvironmentSatisfaction <- as.numeric(sapply(as.character(attrition_test$EnvironmentSatisfaction), consolidate.enviromentSatisfaction, USE.NAMES=FALSE))
 attrition_test$JobInvolvement <- as.numeric(sapply(as.character(attrition_test$JobInvolvement), consolidate.jobInvolvment, USE.NAMES=FALSE))
@@ -229,32 +232,40 @@ decimal<-function(x){
   return(y)
 }
 
+#koristimo z_score funkciju
 attrition_train[,c(4,10,20)]<-lapply(attrition_train[,c(4,10,20)],z_score)
+
 #primjena log funkcije na varijable koje su smaknute
+skewness(attrition_train$HourlyRate)
 attrition_train$HourlyRate<-log(attrition_train$HourlyRate)
+skewness(attrition_train$MonthlyIncome)
 attrition_train$MonthlyIncome<-log(attrition_train$MonthlyIncome)
 
+#za test set
 attrition_test[,c(4,10,20)]<-lapply(attrition_test[,c(4,10,20)],z_score)
 #primjena log funkcije na varijable koje su smaknute
 attrition_test$HourlyRate<-log(attrition_test$HourlyRate)
 attrition_test$MonthlyIncome<-log(attrition_test$MonthlyIncome)
 
-#VEZE MEDJU VARIJABLAMA DA ZNAMO KOJU MOZEMO IZBACITI -- nije uradjeno
-cor<-rcorr(as.matrix(attrition_train[,c("X", "Attrition", "DistanceFromHome",        
-                                        "EmployeeNumber", "Education",               
-                                        "HourlyRate", "JobLevel","EnvironmentSatisfaction","JobInvolvement","WorkLifeBalance","RelationshipSatisfaction","PerformanceRating", "JobSatisfaction","StockOptionLevel",       
-                                        "MonthlyIncome","MonthlyRate","NumCompaniesWorked","TotalWorkingYears","YearsAtCompany","YearsInCurrentRole",      
-                                        "YearsSinceLastPromotion","YearsWithCurrManager" )]))
-crosstab(attrition_train, row.vars = "Attrition", col.vars = c("DistanceFromHome", "BusinessTravel","DailyRate","Department","EducationField","EmployeeCount","Gender",
-                                                               "JobRole","MaritalStatus","Over18","OverTime","PercentSalaryHike","StandardHours","TrainingTimesLastYear",
-                                                               "BirthDate",
-                                                               "EmployeeNumber", "Education",               
-                                                               "HourlyRate", "JobLevel",
-                                                               "EnvironmentSatisfaction","JobInvolvement",
-                                                               "WorkLifeBalance","RelationshipSatisfaction",
-                                                               "PerformanceRating", "JobSatisfaction",
-                                                               "StockOptionLevel","MonthlyIncome",
-                                                               "MonthlyRate","NumCompaniesWorked",
-                                                               "TotalWorkingYears","YearsAtCompany","YearsInCurrentRole",      
-                                                               "YearsSinceLastPromotion","YearsWithCurrManager" ))
+#VEZE MEDJU VARIJABLAMA DA ZNAMO KOJU MOZEMO IZBACITI
+#----rcorr se primjenjuje nad numerickim varijablama
+cor<-rcorr(as.matrix(attrition_train[,c("X",  "DailyRate",
+                                        "DistanceFromHome", "Education", "EmployeeCount",
+                                        "EmployeeNumber", "EnvironmentSatisfaction", "HourlyRate", "JobInvolvement",
+                                        "JobLevel", "JobSatisfaction", "MonthlyIncome", "MonthlyRate", "NumCompaniesWorked",
+                                        "PercentSalaryHike", "PerformanceRating", "RelationshipSatisfaction", "StandardHours",
+                                        "StockOptionLevel", "TotalWorkingYears", "TrainingTimesLastYear", "WorkLifeBalance", 
+                                        "YearsAtCompany", "YearsInCurrentRole", "YearsSinceLastPromotion", "YearsWithCurrManager")]))
+cor$r
+cor$P
+#za kategoricke mozemo koristiti CrossTable
+CrossTable(attrition_train$Attrition,attrition_train$BusinessTravel, chisq = TRUE, format="SPSS")
+CrossTable(attrition_train$Attrition,attrition_train$Department, chisq = TRUE, format="SPSS")
+CrossTable(attrition_train$Attrition,attrition_train$EducationField, chisq = TRUE, format="SPSS")
+CrossTable(attrition_train$Attrition,attrition_train$Gender, chisq = TRUE, format="SPSS")
+CrossTable(attrition_train$Attrition,attrition_train$JobRole, chisq = TRUE, format="SPSS")
+CrossTable(attrition_train$Attrition,attrition_train$MaritalStatus, chisq = TRUE, format="SPSS")
+CrossTable(attrition_train$Attrition,attrition_train$Over18, chisq = TRUE, format="SPSS")
+CrossTable(attrition_train$Attrition,attrition_train$OverTime, chisq = TRUE, format="SPSS")
+CrossTable(attrition_train$Attrition,attrition_train$BirthDate, chisq = TRUE, format="SPSS")
 
