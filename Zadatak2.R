@@ -18,9 +18,21 @@ library(car)
 attrition <- merge(attrition_train, attrition_test, by="X")
 attrition <- rbind(attrition_train, attrition_test)
 attrition$Attrition <- as.numeric(attrition$Attrition)
-attrition <- subset(attrition, select=-c(BusinessTravel, Department, EducationField, Gender, JobRole, MaritalStatus, Over18, OverTime, BirthDate))
+attrition <- subset(attrition, select=-c(EmployeeCount,PercentSalaryHike, StandardHours, TotalWorkingYears, YearsInCurrentRole, TrainingTimesLastYear, YearsSinceLastPromotion, Over18, JobLevel, JobRole, BirthDate))
 
 #kreiranje regresijskog modela
+consolidate.attrition <- function(attrition) {
+  if(attrition == 'No') {
+    return(0)
+  } else if(attrition == 'Yes') {
+    return(1)
+  } else {
+    return(attrition)
+  }
+}
+#normalizacija trening seta
+attrition$Attrition <- as.numeric(sapply(as.character(attrition$Attrition), consolidate.attrition, USE.NAMES=FALSE))
+
 lm.fit<-lm(Attrition~.,data=attrition)
 summary(lm.fit)
 
@@ -36,6 +48,7 @@ lines(smooth.spline(predict(lm.fit),residuals(lm.fit)), col="red")
 plot(density(lm.fit$residuals) ,main="Residuals", xlab="Value")
 plot(lm.fit, which=2)
 shapiro.test(lm.fit$residuals)
+
 dwtest(Attrition~.,data=attrition)
 
 #Nekonstantna variansa reziduala
@@ -53,7 +66,7 @@ summary(lm1.fit)
 #Detekcija leverage points
 #OVDJE JE GRESKA U 55. LINIJI JE 0 PA BUDE U 56. PRAZAN SET
 length(unique(which(hatvalues(lm1.fit)>10*(ncol(attrition1))/nrow(attrition1))))
-#attrition1<-attrition1[-unique(which(hatvalues(lm1.fit)>10*(ncol(attrition1))/nrow(attrition1))),]
+attrition1<-attrition1[-unique(which(hatvalues(lm1.fit)>10*(ncol(attrition1))/nrow(attrition1))),]
 
 lm2.fit<-lm(Attrition~.,data=attrition1)
 summary(lm2.fit)

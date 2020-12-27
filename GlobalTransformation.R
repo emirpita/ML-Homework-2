@@ -25,8 +25,8 @@ attrition_test$Attrition <- as.factor(attrition_test$Attrition)
 # Postavljanje faktor varijabli
 attrition_train$Attrition <- as.factor(attrition_train$Attrition)
 #prebacivanje BirthDate varijable u Date tip i agregiranje na godinu rodjenja
-#attrition_train$BirthDate <- as.Date(attrition_train$BirthDate)
-#attrition_test$BirthDate <- as.Date(attrition_test$BirthDate)
+attrition_train$BirthDate <- as.Date(attrition_train$BirthDate)
+attrition_test$BirthDate <- as.Date(attrition_test$BirthDate)
 
 #attrition_train$BirthDate <- format(attrition_train$BirthDate, "%Y")
 
@@ -249,7 +249,7 @@ attrition_test$MonthlyIncome<-log(attrition_test$MonthlyIncome)
 
 #VEZE MEDJU VARIJABLAMA DA ZNAMO KOJU MOZEMO IZBACITI
 #----rcorr se primjenjuje nad numerickim varijablama
-cor<-rcorr(as.matrix(attrition_train[,c("X",  "DailyRate",
+cor<-rcorr(as.matrix(attrition_train[,c(  "DailyRate",
                                         "DistanceFromHome", "Education", "EmployeeCount",
                                         "EmployeeNumber", "EnvironmentSatisfaction", "HourlyRate", "JobInvolvement",
                                         "JobLevel", "JobSatisfaction", "MonthlyIncome", "MonthlyRate", "NumCompaniesWorked",
@@ -268,4 +268,3 @@ CrossTable(attrition_train$Attrition,attrition_train$MaritalStatus, chisq = TRUE
 CrossTable(attrition_train$Attrition,attrition_train$Over18, chisq = TRUE, format="SPSS")
 CrossTable(attrition_train$Attrition,attrition_train$OverTime, chisq = TRUE, format="SPSS")
 CrossTable(attrition_train$Attrition,attrition_train$BirthDate, chisq = TRUE, format="SPSS")
-
