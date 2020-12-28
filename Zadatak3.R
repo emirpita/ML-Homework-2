@@ -8,25 +8,10 @@ library(e1071)
 
 # Ucitavanje podataka
 redWineData = read.table("Data/winequality-red.csv", sep = ";", header = T)
-
-# Funkcija za sortiranje kolona dataseta u odnosu na korelaciju sa outcome (korelaciju sa Quality kolonom)
-sortByCorr = function(dataset, referentaKolona) {
-  # Sort the dataframe columns by the absolute value of their correlation with
-  # a given column
-  #
-  # Args:
-  #   dataset: A vector, matrix, or data frame to sort
-  #   referentaKolona: The name of the reference colum for the correlation
-  #
-  # Returns:
-  #   The sorted dataframe
-  indeksRefKolone = grep(referentaKolona, colnames(dataset))
-  pomocnaCorr = cor(dataset)[, indeksRefKolone]
-  pomocnaCorr[order(abs(pomocnaCorr), decreasing = TRUE)]
-  
-  dataset[, order(abs(pomocnaCorr), decreasing = TRUE)]
-}
-
+redWineData$HighQuality = ifelse(redWineData$quality <=5,0,1)
+redWineData$HighQuality = as.numeric(redWineData$HighQuality)
+#HighQuality = ifelse(redWineData$quality <=5,"No","Yes")
+#redWineData<-data.frame(redWineData, HighQuality)
 
 # Analiza podataka
 dim(redWineData)
