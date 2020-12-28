@@ -35,17 +35,17 @@ consolidate.attrition <- function(attrition) {
 attrition$Attrition <- as.numeric(sapply(as.character(attrition$Attrition), consolidate.attrition, USE.NAMES=FALSE))
 
 #odrediti neku selekciju koja ce mi reci koji je najbolji model ya predikciju
-regfit.fwd = regsubsets(Attrition~.,data=attrition, nvmax = 30, method = "forward")
-summary(regfit.fwd)
-reg.summary = summary(regfit.fwd)
-reg.summary$adjr2
-regfit.bwd = regsubsets(Attrition~.,data=attrition, nvmax = 30, method = "backward")
-summary(regfit.bwd)
-reg.summary = summary(regfit.bwd)
-reg.summary$adjr2
+#regfit.fwd = regsubsets(Attrition~.,data=attrition, nvmax = 30, method = "forward")
+#summary(regfit.fwd)
+#reg.summary = summary(regfit.fwd)
+#reg.summary$adjr2
+#regfit.bwd = regsubsets(Attrition~.,data=attrition, nvmax = 30, method = "backward")
+#summary(regfit.bwd)
+#reg.summary = summary(regfit.bwd)
+#reg.summary$adjr2
 
 #kreiranje regresijskog modela
-lm.fit<-lm(Attrition~.,data=attrition)
+lm.fit<-lm(Attrition~OverTime+MonthlyIncome+MaritalStatus+JobInvolvement+DistanceFromHome+JobSatisfaction+EnvironmentSatisfaction+NumCompaniesWorked+RelationshipSatisfaction+WorkLifeBalance+YearsAtCompany+YearsWithCurrManager,data=attrition)
 summary(lm.fit)
 reg.summary = summary(lm.fit)
 reg.summary$adj.r.squared
@@ -62,7 +62,7 @@ lines(smooth.spline(predict(lm.fit),residuals(lm.fit)), col="red")
 plot(density(lm.fit$residuals) ,main="Residuals", xlab="Value")
 plot(lm.fit, which=2)
 shapiro.test(lm.fit$residuals)
-dwtest(Attrition~.,data=attrition)
+dwtest(Attrition~OverTime+MonthlyIncome+MaritalStatus+JobInvolvement+DistanceFromHome+JobSatisfaction+EnvironmentSatisfaction+NumCompaniesWorked+RelationshipSatisfaction+WorkLifeBalance+YearsAtCompany+YearsWithCurrManager,data=attrition)
 
 #Nekonstantna variansa reziduala
 plot(predict(lm.fit),rstudent(lm.fit))
@@ -75,7 +75,7 @@ if(length(unique(which(abs(rstudent(lm.fit))>3))) != 0) {
 }
 
 #Novi model
-lm1.fit<-lm(Attrition~.,data=attrition1)
+lm1.fit<-lm(Attrition~OverTime+MonthlyIncome+MaritalStatus+JobInvolvement+DistanceFromHome+JobSatisfaction+EnvironmentSatisfaction+NumCompaniesWorked+RelationshipSatisfaction+WorkLifeBalance+YearsAtCompany+YearsWithCurrManager,data=attrition1)
 summary(lm1.fit)
 reg.summary = summary(lm1.fit)
 reg.summary$adj.r.squared
@@ -87,7 +87,7 @@ if(length(unique(which(hatvalues(lm1.fit)>10*(ncol(attrition1))/nrow(attrition1)
 }
 
 #Novi model
-lm2.fit<-lm(Attrition~.,data=attrition1)
+lm2.fit<-lm(Attrition~OverTime+MonthlyIncome+MaritalStatus+JobInvolvement+DistanceFromHome+JobSatisfaction+EnvironmentSatisfaction+NumCompaniesWorked+RelationshipSatisfaction+WorkLifeBalance+YearsAtCompany+YearsWithCurrManager,data=attrition1)
 summary(lm2.fit)
 reg.summary = summary(lm2.fit)
 reg.summary$adj.r.squared
@@ -98,14 +98,14 @@ vif(lm2.fit)
 attrition2<-attrition1[,-10]
 
 #Novi model
-lm3.fit<-lm(Attrition~.,data=attrition2)
+lm3.fit<-lm(Attrition~OverTime+MonthlyIncome+MaritalStatus+JobInvolvement+DistanceFromHome+JobSatisfaction+EnvironmentSatisfaction+NumCompaniesWorked+RelationshipSatisfaction+WorkLifeBalance+YearsAtCompany+YearsWithCurrManager,data=attrition2)
 summary(lm3.fit)
 reg.summary = summary(lm3.fit)
 finalRsquared <- reg.summary$adj.r.squared
 vif(lm3.fit)
 
-#ujednacavanje duzina
-attrition <- attrition[-c(1458:1470), ]
+#ujednacavanje duzina setova
+attrition <- attrition[-c(1460:1470), ]
 
 #MAE
 finalMAE <- MAE(attrition$Attrition,round(predict(lm3.fit)))
