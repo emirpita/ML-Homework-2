@@ -35,14 +35,14 @@ consolidate.attrition <- function(attrition) {
 attrition$Attrition <- as.numeric(sapply(as.character(attrition$Attrition), consolidate.attrition, USE.NAMES=FALSE))
 
 #odrediti neku selekciju koja ce mi reci koji je najbolji model ya predikciju
-#regfit.fwd = regsubsets(Attrition~.,data=attrition, nvmax = 30, method = "forward")
-#summary(regfit.fwd)
-#reg.summary = summary(regfit.fwd)
-#reg.summary$adjr2
-#regfit.bwd = regsubsets(Attrition~.,data=attrition, nvmax = 30, method = "backward")
-#summary(regfit.bwd)
-#reg.summary = summary(regfit.bwd)
-#reg.summary$adjr2
+regfit.fwd = regsubsets(Attrition~OverTime+MonthlyIncome+MaritalStatus+JobInvolvement+DistanceFromHome+JobSatisfaction+EnvironmentSatisfaction+NumCompaniesWorked+RelationshipSatisfaction+WorkLifeBalance+YearsAtCompany+YearsWithCurrManager,data=attrition, nvmax = 30, method = "forward")
+summary(regfit.fwd)
+reg.summary = summary(regfit.fwd)
+reg.summary$adjr2
+regfit.bwd = regsubsets(Attrition~OverTime+MonthlyIncome+MaritalStatus+JobInvolvement+DistanceFromHome+JobSatisfaction+EnvironmentSatisfaction+NumCompaniesWorked+RelationshipSatisfaction+WorkLifeBalance+YearsAtCompany+YearsWithCurrManager,data=attrition, nvmax = 30, method = "backward")
+summary(regfit.bwd)
+reg.summary = summary(regfit.bwd)
+reg.summary$adjr2
 
 #kreiranje regresijskog modela
 lm.fit<-lm(Attrition~OverTime+MonthlyIncome+MaritalStatus+JobInvolvement+DistanceFromHome+JobSatisfaction+EnvironmentSatisfaction+NumCompaniesWorked+RelationshipSatisfaction+WorkLifeBalance+YearsAtCompany+YearsWithCurrManager,data=attrition)
