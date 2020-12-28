@@ -121,7 +121,7 @@ skewness(redWineData$quality)
 skewness(redWineData$HighQuality)
 pairs(log(cleanredWineData))
 
-# --------------------------------------------
+# <----------------------------------------------------------------------------------->
 # Izgradnja inicijalnog modela
 # Koristit cemo logicku regresiju, iako se radi o klasifikacijskom problemu
 # Varijabla HighQuality (kao i varijabla quality) su varijable sa 2 (tj 10) vrijednosti
@@ -133,12 +133,55 @@ mean(redFit$residuals^2)
 MAE(cleanredWineData$HighQuality,round(predict(redFit)))
 
 # Izgradnja i pretrazivanje optimalnog modela koriteci logisticku regresiju
-rsRes.fwd = regsubsets(HighQuality~.-quality, data=cleanredWineData, method = "forward", nvmax = 11)
+# <---------- METODA FORWARD ------------->
+metrics = c("rsq", "rss", "adjr2", "cp", "bic")
+summaryMetrics = NULL
+rsRes.fwd = regsubsets(HighQuality~ .-quality, data=cleanredWineData, method = "forward", nvmax = 11)
 summRes = summary(rsRes.fwd)
-summRes$adjr2
-MAE(cleanredWineData$HighQuality,round(predict(rsRes.fwd)))
+summRes$which
+for (metricName in metrics) {
+  summaryMetrics = rbind(summaryMetrics,
+                             data.frame(method = "forward", metric = metricName,
+                                    nvars = 1:length(summRes[[metricName]]),
+                                    value = summRes[[metricName]]))
+}
   
-  
-  
-  
+# Plotanje pripadnosti varijabli modelima
+old.par = par(mfrow = c(1,2), ps = 16, mar = c(5,7,2,1))
+image(1:nrow(summRes$which),
+        1:ncol(summRes$which),
+        summRes$which, xlab = 'N(vars)', ylab = '',
+        xaxt = 'n', yaxt = 'n', breaks = c(-0.5, 0.5, 1.5),
+        col = c('white', 'lightblue1'), main = "forward")
+axis(1, 1:nrow(summRes$which), rownames(summRes$which))
+axis(2, 1:ncol(summRes$which), colnames(summRes$which), las = 2)
+par(old.par)
 
+# Plotanje metrika modela
+ggplot(summaryMetrics, aes(x = nvars, y = value, shape = method, colour = method)) + geom_path() + geom_point() + facet_wrap(~metric, scales = "free") + theme(legend.position = "top")
+
+# <---------- METODA BACKWARD ------------->
+summaryMetrics = NULL
+rsRes.bwd = regsubsets(HighQuality~ .-quality, data=cleanredWineData, method = "backward", nvmax = 11)
+summRes = summary(rsRes.bwd)
+summRes$which
+for (metricName in metrics) {
+  summaryMetrics = rbind(summaryMetrics,
+                         data.frame(method = "backward", metric = metricName,
+                                    nvars = 1:length(summRes[[metricName]]),
+                                    value = summRes[[metricName]]))
+}
+
+# Plotanje pripadnosti varijabli modelima
+old.par = par(mfrow = c(1,2), ps = 16, mar = c(5,7,2,1))
+image(1:nrow(summRes$which),
+      1:ncol(summRes$which),
+      summRes$which, xlab = 'N(vars)', ylab = '',
+      xaxt = 'n', yaxt = 'n', breaks = c(-0.5, 0.5, 1.5),
+      col = c('white', 'lightblue1'), main = "backward")
+axis(1, 1:nrow(summRes$which), rownames(summRes$which))
+axis(2, 1:ncol(summRes$which), colnames(summRes$which), las = 2)
+par(old.par)
+
+# Plotanje metrika modela
+ggplot(summaryMetrics, aes(x = nvars, y = value, shape = method, colour = method)) + geom_path() + geom_point() + facet_wrap(~metric, scales = "free") + theme(legend.position = "top")
