@@ -185,3 +185,36 @@ par(old.par)
 
 # Plotanje metrika modela
 ggplot(summaryMetrics, aes(x = nvars, y = value, shape = method, colour = method)) + geom_path() + geom_point() + facet_wrap(~metric, scales = "free") + theme(legend.position = "top")
+
+# Izgradnja optimalnog modela nakon sto smo zakljucili koje su znacajne varijable
+redFit2 = lm(HighQuality~alcohol + sulphates + volatile.acidity + total.sulfur.dioxide + pH - quality, cleanredWineData)
+summary(redFit2)
+mean(redFit2$residuals^2)
+MAE(cleanredWineData$HighQuality,round(predict(redFit2)))
+
+# zakljucili smo da je najbolji model kad se sve varijable ukljuce
+# isto kao i polazni
+redFit3 = lm(HighQuality~.-quality, cleanredWineData)
+summary(redFit3)
+mean(redFit3$residuals^2)
+MAE(cleanredWineData$HighQuality,round(predict(redFit3)))
+
+
+# Predikcija
+n <- nrow(cleanredWineData);
+eighty_percent <- floor(n * 0.8)
+train_sample <- sample(1:n, eighty_percent) 
+test_sample <- setdiff(1:n, train_sample) 
+
+rwTrain <- cleanredWineData[train_sample, ] 
+rwTest <- cleanredWineData[test_sample, ]
+model_logit <- glm(HighQuality~.-quality, family=binomial(link='logit'), data=rwTrain, na.action="na.omit")
+model_logit
+pred_logitS <- predict(model_logit, newdata = rwTest)
+pred_logit <- ifelse(pred_logitS > 0, 1, 0)
+pred_logit_noname <- unname(pred_logit)
+pred_logit_noname<-ifelse(pred_logit_noname==1,"1","0")
+pred_logit_noname <- as.factor(pred_logit_noname)
+confusionMatrix(pred_logit_noname, rwTest$HighQuality)
+#Error: `data` and `reference` should be factors with the same levels.
+# Dopisati dio za neuronske mreze (iz predavanja) i uporediti u  izvjestajuz
