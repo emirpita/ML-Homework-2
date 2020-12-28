@@ -5,11 +5,28 @@ library(MASS)
 library(ggcorrplot)
 library(plotmo)
 library(e1071)
+library(MASS)
+library(caret)
+library(rpart)
+library(mice)
+library(VIM)
+library(ggplot2)
+library(statip)
+library(e1071)
+library(ISLR)
+library(tree)
+library(Hmisc)
+library(descr)
+library(lmtest)
+library(lattice)
+library(car)
+library(leaps)
 
 # Ucitavanje podataka
 redWineData = read.table("Data/winequality-red.csv", sep = ";", header = T)
 redWineData$HighQuality = ifelse(redWineData$quality <=5,0,1)
-redWineData$HighQuality = as.numeric(redWineData$HighQuality)
+redWineData$HighQuality = as.integer(redWineData$HighQuality)
+redWineData$quality = as.integer(redWineData$quality)
 #HighQuality = ifelse(redWineData$quality <=5,"No","Yes")
 #redWineData<-data.frame(redWineData, HighQuality)
 
@@ -101,4 +118,27 @@ skewness(redWineData$pH)
 skewness(redWineData$sulphates)
 skewness(redWineData$alcohol)
 skewness(redWineData$quality)
+skewness(redWineData$HighQuality)
 pairs(log(cleanredWineData))
+
+# --------------------------------------------
+# Izgradnja inicijalnog modela
+# Koristit cemo logicku regresiju, iako se radi o klasifikacijskom problemu
+# Varijabla HighQuality (kao i varijabla quality) su varijable sa 2 (tj 10) vrijednosti
+
+redFit = lm(HighQuality~.-quality, cleanredWineData)
+# redFit = lm(quality~.-HighQuality, cleanredWineData)
+summary(redFit)
+mean(redFit$residuals^2)
+MAE(cleanredWineData$HighQuality,round(predict(redFit)))
+
+# Izgradnja i pretrazivanje optimalnog modela koriteci logisticku regresiju
+rsRes.fwd = regsubsets(HighQuality~.-quality, data=cleanredWineData, method = "forward", nvmax = 11)
+summRes = summary(rsRes.fwd)
+summRes$adjr2
+MAE(cleanredWineData$HighQuality,round(predict(rsRes.fwd)))
+  
+  
+  
+  
+
