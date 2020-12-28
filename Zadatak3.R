@@ -4,26 +4,27 @@ library(reshape2)
 library(MASS)
 library(ggcorrplot)
 library(plotmo)
+library(e1071)
 
 # Ucitavanje podataka
 redWineData = read.table("Data/winequality-red.csv", sep = ";", header = T)
 
 # Funkcija za sortiranje kolona dataseta u odnosu na korelaciju sa outcome (korelaciju sa Quality kolonom)
-sortByCorr = function(dataset, refColName) {
+sortByCorr = function(dataset, referentaKolona) {
   # Sort the dataframe columns by the absolute value of their correlation with
   # a given column
   #
   # Args:
   #   dataset: A vector, matrix, or data frame to sort
-  #   refColName: The name of the reference colum for the correlation
+  #   referentaKolona: The name of the reference colum for the correlation
   #
   # Returns:
   #   The sorted dataframe
-  refColIdx = grep(refColName, colnames(dataset))
-  corrTmp = cor(dataset)[, refColIdx]
-  corrTmp[order(abs(corrTmp), decreasing = TRUE)]
+  indeksRefKolone = grep(referentaKolona, colnames(dataset))
+  pomocnaCorr = cor(dataset)[, indeksRefKolone]
+  pomocnaCorr[order(abs(pomocnaCorr), decreasing = TRUE)]
   
-  dataset[, order(abs(corrTmp), decreasing = TRUE)]
+  dataset[, order(abs(pomocnaCorr), decreasing = TRUE)]
 }
 
 
@@ -34,6 +35,9 @@ summary(redWineData)
 
 # Prikaz box plotova za analizu outliers
 oldpar = par(mfrow = c(2,6))
+#posto plot nije htio iz prve evo popravka sa ove 2 linije, odkomentarisati ako nece
+par("mar")
+par(mar=c(1,1,1,1))
 for ( i in 1:11 ) {
   boxplot(redWineData[[i]])
   mtext(names(redWineData)[i], cex = 0.8, side = 1, line = 2)
@@ -60,10 +64,8 @@ for ( i in 1:11 ) {
 
 
 # Analiza distribucije varijabli nakon uklanjanja outliers-a
-coutliers = as.numeric(rownames(redWineData[cooksd > 4 * mean(cooksd, na.rm=T), ]))
-redOutliers = c(redOutliers , coutliers[ !coutliers %in% redOutliers ] )
 
-cleanredWineData = redWineData[-redOutliers, ]
+cleanredWineData = redWineData[-outliers, ]
 oldpar = par(mfrow=c(6,2))
 
 for ( i in 1:12 ) {
@@ -75,10 +77,27 @@ par(oldpar)
 
 # S obzirom da su sve numericke varijable, lako je analizirati korelaciju
 # U ovom dijelu, mi cemo plottati korelaciju koristeci se funkcijom iz biblioteke ggplot2
-ggcorrplot(cor(cleanredWineData), hc.order = TRUE, type = "lower", lab = TRUE, insig = "blank")
+ggcorrplot(cor(cleanredWineData), hc.order = TRUE, type = "lower", lab = TRUE, insig = "blank",  colors = c("purple", "white", "yellow"))
 
 # Prikaz varijabli sa najvecom korelacijom
-colnames(sortByCorr(dataset = cleanredWineData, refColName = 'quality'))
+
+# Funkcija za sortiranje kolona dataseta u odnosu na korelaciju
+
+# Sortira kolone u dataframe u odnosu na apsolutnu vrijednost
+# njihove korelacije sa zadanom kolonom
+# Kao argumente uzima ataset - vektor, matrica ili data frame za sortiranje,
+# referentnaKolona - naziv referentne kolone u odnosu na koju sortiramo
+# Povratna vrijednost: dataset sortiran pomocu funkcije order
+
+sortByCorr = function(dataset, referentaKolona) {
+  indeksRefKolone = grep(referentaKolona, colnames(dataset))
+  pomocnaCorr = cor(dataset)[, indeksRefKolone]
+  pomocnaCorr[order(abs(pomocnaCorr), decreasing = TRUE)]
+  
+  dataset[, order(abs(pomocnaCorr), decreasing = TRUE)]
+}
+
+colnames(sortByCorr(dataset = cleanredWineData, referentaKolona = 'quality'))
 
 # Provjera smaknutosti varijabli
 
