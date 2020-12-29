@@ -210,7 +210,7 @@ test_sample <- setdiff(1:n, train_sample)
 rwTrain <- cleanredWineData[train_sample, ] 
 rwTest <- cleanredWineData[test_sample, ]
 
-# Klasifikacija korisetci logisticku regresiju
+# Klasifikacija koristeci logisticku regresiju
 model_logit <- glm(HighQuality~.-quality, family=binomial(link='logit'), data=rwTrain, na.action="na.omit")
 model_logit
 pred_logitS <- predict(model_logit, newdata = rwTest)
@@ -222,12 +222,10 @@ rwTest$HighQuality <- as.factor(rwTest$HighQuality)
 rwTrain$HighQuality <- as.factor(rwTrain$HighQuality)
 confusionMatrix(pred_logit_noname, rwTest$HighQuality, positive="1")
 
-# Klasifikacija nad istim trening i tesnim skupom koristeci neuronske mreze
+# Klasifikacija nad istim trening i testnim skupom koristeci neuronske mreze
 rwNnet<-nnet(HighQuality~.-quality,data=rwTrain,size=4,decay=0.0001,maxit=500)
 summary(rwNnet)
-rwPredictions<-predict(rwNnet,newData= rwTest,type="class")
+rwPredictions<-predict(rwNnet,rwTest[,-13],type="class")
 rwPredictions<-ifelse(rwPredictions==1, 1, 0)
 rwPredictions <- as.factor(rwPredictions)
-rwTest$HighQuality
-rwTrain$HighQuality
 confusionMatrix(rwPredictions, rwTest$HighQuality, positive="1")
