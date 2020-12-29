@@ -15,6 +15,10 @@ library(lattice)
 library(car)
 library(leaps)
 
+#pozivanje globaltransofrmation zbog podataka
+#prvi yadatak stvori gresku pa se ova skripta ne izvrsava ispravno bez ponovnog poziva
+source("GlobalTransformation.R")
+
 #spojeni attrition setovi u jedan
 attrition <- merge(attrition_train, attrition_test, by="X")
 attrition <- rbind(attrition_train, attrition_test)
