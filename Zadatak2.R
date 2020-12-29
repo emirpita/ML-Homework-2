@@ -35,20 +35,26 @@ consolidate.attrition <- function(attrition) {
 attrition$Attrition <- as.numeric(sapply(as.character(attrition$Attrition), consolidate.attrition, USE.NAMES=FALSE))
 
 #odrediti neku selekciju koja ce mi reci koji je najbolji model ya predikciju
-regfit.fwd = regsubsets(Attrition~.,data=attrition, nvmax = 30, method = "forward")
-summary(regfit.fwd)
-reg.summary = summary(regfit.fwd)
-reg.summary$adjr2
-regfit.bwd = regsubsets(Attrition~.,data=attrition, nvmax = 30, method = "backward")
-summary(regfit.bwd)
-reg.summary = summary(regfit.bwd)
-reg.summary$adjr2
+#regfit.fwd = regsubsets(Attrition~.,data=attrition, nvmax = 30, method = "forward")
+#summary(regfit.fwd)
+#reg.summary = summary(regfit.fwd)
+#reg.summary$adjr2
+#regfit.bwd = regsubsets(Attrition~.,data=attrition, nvmax = 30, method = "backward")
+#summary(regfit.bwd)
+#reg.summary = summary(regfit.bwd)
+#reg.summary$adjr2
 
 #kreiranje regresijskog modela
 lm.fit<-lm(Attrition~.,data=attrition)
 summary(lm.fit)
 reg.summary = summary(lm.fit)
 reg.summary$adj.r.squared
+
+#SELEKCIJE
+lm.fitbwd<-lm(Attrition~.,data=attrition)
+step(lm.fitbwd, direction = "backward")
+lm.fitfwd<-lm(Attrition~1,data=attrition)
+step(lm.fitfwd, direction = "forward", scope = formula(lm.fitbwd))
 
 #posto plot nije htio iz prve evo popravka sa ove 2 linije, odkomentarisati ako nece
 #par("mar")
