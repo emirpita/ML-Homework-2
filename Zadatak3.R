@@ -21,6 +21,7 @@ library(lmtest)
 library(lattice)
 library(car)
 library(leaps)
+library(nnet)
 
 # Ucitavanje podataka
 redWineData = read.table("Data/winequality-red.csv", sep = ";", header = T)
@@ -201,13 +202,15 @@ MAE(cleanredWineData$HighQuality,round(predict(redFit3)))
 
 
 # Predikcija
+set.seed(5)
 n <- nrow(cleanredWineData);
 eighty_percent <- floor(n * 0.8)
 train_sample <- sample(1:n, eighty_percent) 
-test_sample <- setdiff(1:n, train_sample) 
-
+test_sample <- setdiff(1:n, train_sample)
 rwTrain <- cleanredWineData[train_sample, ] 
 rwTest <- cleanredWineData[test_sample, ]
+
+# Klasifikacija korisetci logisticku regresiju
 model_logit <- glm(HighQuality~.-quality, family=binomial(link='logit'), data=rwTrain, na.action="na.omit")
 model_logit
 pred_logitS <- predict(model_logit, newdata = rwTest)
@@ -215,6 +218,16 @@ pred_logit <- ifelse(pred_logitS > 0, 1, 0)
 pred_logit_noname <- unname(pred_logit)
 pred_logit_noname<-ifelse(pred_logit_noname==1,"1","0")
 pred_logit_noname <- as.factor(pred_logit_noname)
-confusionMatrix(pred_logit_noname, rwTest$HighQuality)
-#Error: `data` and `reference` should be factors with the same levels.
-# Dopisati dio za neuronske mreze (iz predavanja) i uporediti u  izvjestajuz
+rwTest$HighQuality <- as.factor(rwTest$HighQuality)
+rwTrain$HighQuality <- as.factor(rwTrain$HighQuality)
+confusionMatrix(pred_logit_noname, rwTest$HighQuality, positive="1")
+
+# Klasifikacija nad istim trening i tesnim skupom koristeci neuronske mreze
+rwNnet<-nnet(HighQuality~.-quality,data=rwTrain,size=4,decay=0.0001,maxit=500)
+summary(rwNnet)
+rwPredictions<-predict(rwNnet,newData= rwTest,type="class")
+rwPredictions<-ifelse(rwPredictions==1, 1, 0)
+rwPredictions <- as.factor(rwPredictions)
+rwTest$HighQuality
+rwTrain$HighQuality
+confusionMatrix(rwPredictions, rwTest$HighQuality, positive="1")
