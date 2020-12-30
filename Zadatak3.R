@@ -130,7 +130,8 @@ pairs(log(cleanredWineData))
 redFit = lm(HighQuality~.-quality, cleanredWineData)
 # redFit = lm(quality~.-HighQuality, cleanredWineData)
 summary(redFit)
-mean(redFit$residuals^2)
+#ovo ne treba jer je ovo MSE
+#mean(redFit$residuals^2)
 MAE(cleanredWineData$HighQuality,round(predict(redFit)))
 
 # Izgradnja i pretrazivanje optimalnog modela koriteci logisticku regresiju
@@ -190,14 +191,14 @@ ggplot(summaryMetrics, aes(x = nvars, y = value, shape = method, colour = method
 # Izgradnja optimalnog modela nakon sto smo zakljucili koje su znacajne varijable
 redFit2 = lm(HighQuality~alcohol + sulphates + volatile.acidity + total.sulfur.dioxide + pH - quality, cleanredWineData)
 summary(redFit2)
-mean(redFit2$residuals^2)
+#mean(redFit2$residuals^2)
 MAE(cleanredWineData$HighQuality,round(predict(redFit2)))
 
 # zakljucili smo da je najbolji model kad se sve varijable ukljuce
 # isto kao i polazni
 redFit3 = lm(HighQuality~.-quality, cleanredWineData)
 summary(redFit3)
-mean(redFit3$residuals^2)
+#mean(redFit3$residuals^2)
 MAE(cleanredWineData$HighQuality,round(predict(redFit3)))
 
 
