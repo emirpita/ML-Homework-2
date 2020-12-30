@@ -49,6 +49,7 @@ par(oldpar) #za postavljanje grafickih parametara
 
 # Pregled histograma (POOS) za analizu distribucije
 oldpar = par(mfrow = c(6,2))
+
 for ( i in 1:12 ) {
   truehist(redWineData[[i]], xlab = names(redWineData)[i], col = 'lightgreen', main = paste("Average =", signif(mean(redWineData[[i]]),3)), nbins = 50)
 }
@@ -122,13 +123,13 @@ skewness(cleanredWineData$quality)
 skewness(cleanredWineData$HighQuality)
 pairs(log(cleanredWineData))
 
+
 # <----------------------------------------------------------------------------------->
 # Izgradnja inicijalnog modela
 # Koristit cemo logicku regresiju, iako se radi o klasifikacijskom problemu
 # Varijabla HighQuality (kao i varijabla quality) su varijable sa 2 (tj 10) vrijednosti
 
 redFit = lm(HighQuality~.-quality, cleanredWineData)
-# redFit = lm(quality~.-HighQuality, cleanredWineData)
 summary(redFit)
 #ovo ne treba jer je ovo MSE
 #mean(redFit$residuals^2)
@@ -189,7 +190,8 @@ par(old.par)
 ggplot(summaryMetrics, aes(x = nvars, y = value, shape = method, colour = method)) + geom_path() + geom_point() + facet_wrap(~metric, scales = "free") + theme(legend.position = "top")
 
 # Izgradnja optimalnog modela nakon sto smo zakljucili koje su znacajne varijable
-redFit2 = lm(HighQuality~alcohol + sulphates + volatile.acidity + total.sulfur.dioxide + pH - quality, cleanredWineData)
+redFit2 = lm(formula = HighQuality ~ volatile.acidity + citric.acid + free.sulfur.dioxide + 
+               total.sulfur.dioxide + pH + sulphates + alcohol-quality, data = cleanredWineData)
 summary(redFit2)
 #mean(redFit2$residuals^2)
 MAE(cleanredWineData$HighQuality,round(predict(redFit2)))
@@ -213,6 +215,7 @@ rwTest <- cleanredWineData[test_sample, ]
 
 # Klasifikacija koristeci logisticku regresiju
 model_logit <- glm(HighQuality~.-quality, family=binomial(link='logit'), data=rwTrain, na.action="na.omit")
+
 model_logit
 pred_logitS <- predict(model_logit, newdata = rwTest)
 pred_logit <- ifelse(pred_logitS > 0, 1, 0)
